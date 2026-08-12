@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -8,10 +8,13 @@
 
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Onboarding.Application\Onboarding.Services.csproj" />
+    <ProjectReference Include="..\Onboarding.Data\Onboarding.Data.csproj" />
+    <ProjectReference Include="..\Onboarding.Infrastructure\Onboarding.Repositories.csproj" />
   </ItemGroup>
 
 </Project>
