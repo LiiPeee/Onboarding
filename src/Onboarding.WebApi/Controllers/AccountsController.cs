@@ -17,7 +17,7 @@ public class AccountsController(IAccountService accountService) : ControllerBase
     {
         var created = await _accountService.CreateAsync(request.ToData());
         var response = created.ToResponse();
-        return CreatedAtAction(nameof(GetByIdAsync), new { id = response.Id }, response);
+        return CreatedAtRoute("GetAccountById", new { id = response.Id }, response);
     }
 
     [HttpGet]
@@ -27,7 +27,7 @@ public class AccountsController(IAccountService accountService) : ControllerBase
         return Ok(accounts.Select(a => a.ToResponse()).ToList());
     }
 
-    [HttpGet("{id:long}")]
+    [HttpGet("{id:long}", Name = "GetAccountById")]
     public async Task<ActionResult<AccountResponse>> GetByIdAsync(long id)
     {
         var account = await _accountService.GetByIdAsync(id);
