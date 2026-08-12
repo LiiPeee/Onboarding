@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Onboarding.Domain.Entities;
 using Onboarding.Domain.Enums;
 using Onboarding.Domain.Events;
@@ -11,12 +12,12 @@ using Onboarding.Services.Validators;
 namespace Onboarding.Services.Service;
 
 public class AccountService(
-    IAccountRepository accounts,
-    IOutboxRepository outbox,
+    IAccountRepository accountRepository,
+    IOutboxRepository outboxRepository,
     IUnitOfWork unitOfWork) : IAccountService
 {
-    private readonly IAccountRepository _accounts = accounts;
-    private readonly IOutboxRepository _outbox = outbox;
+    private readonly IAccountRepository _accountRepository = accountRepository;
+    private readonly IOutboxRepository _outboxRepository = outboxRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     public async Task<AccountData> CreateAsync(CreateAccountData data)
@@ -29,14 +30,17 @@ public class AccountService(
 
         var cpf = new string(data.Cpf.Where(char.IsDigit).ToArray());
 
-        if (await _accounts.GetByCpfAsync(cpf) is not null)
+        if (await _accountRepository.GetByCpfAsync(cpf) is not null)
             throw new InvalidOperationException("An account with this CPF already exists.");
 
-        var account = new Account(data.Name.Trim(), cpf);
+        var account = new Account() { Name = data.Name.Trim(),Cpf = cpf };
 
-        await _accounts.AddAsync(account);
-        await _outbox.AddAsync(OutboxEvent.Create(AccountEventTypes.AccountCreated,
-            new { account.Id, account.Name, account.Cpf, Status = account.Status.ToString() }));
+        await _accountRepository.AddAsync(account);
+        await _outboxRepository.AddAsync(new OutboxEvent
+        {
+            EventType = AccountEventTypes.AccountCreated,
+            Payload = JsonSerializer.Serialize(new { account.Id, account.Name, account.Cpf, Status = account.Status.ToString() })
+        });
         await _unitOfWork.CommitAsync();
 
         return AccountData.FromEntity(account);
@@ -44,19 +48,19 @@ public class AccountService(
 
     public async Task<AccountData?> GetByIdAsync(long id)
     {
-        var account = await _accounts.GetByIdAsync(id);
+        var account = await _accountRepository.GetByIdAsync(id);
         return account is null ? null : AccountData.FromEntity(account);
     }
 
     public async Task<IReadOnlyList<AccountData>> GetAllAsync()
     {
-        var accounts = await _accounts.GetAllAsync();
+        var accounts = await _accountRepository.GetAllAsync();
         return accounts.Select(AccountData.FromEntity).ToList();
     }
 
     public async Task<AccountData> UpdateAsync(long id, UpdateAccountData data)
     {
-        var account = await _accounts.GetByIdAsync(id)
+        var account = await _accountRepository.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Account {id} not found.");
 
         if (string.IsNullOrWhiteSpace(data.Name))
@@ -68,9 +72,12 @@ public class AccountService(
         account.UpdateName(data.Name.Trim());
         if (status == AccountStatus.Ativa) account.Activate(); else account.Deactivate();
 
-        await _accounts.UpdateAsync(account);
-        await _outbox.AddAsync(OutboxEvent.Create(AccountEventTypes.AccountUpdated,
-            new { account.Id, account.Name, account.Cpf, Status = account.Status.ToString() }));
+        await _accountRepository.UpdateAsync(account);
+        await _outboxRepository.AddAsync(new OutboxEvent
+        {
+            EventType = AccountEventTypes.AccountUpdated,
+            Payload = JsonSerializer.Serialize(new { account.Id, account.Name, account.Cpf, Status = account.Status.ToString() })
+        });
         await _unitOfWork.CommitAsync();
 
         return AccountData.FromEntity(account);
@@ -78,12 +85,21 @@ public class AccountService(
 
     public async Task DeleteAsync(long id)
     {
-        var account = await _accounts.GetByIdAsync(id)
+        var account = await _accountRepository.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Account {id} not found.");
 
-        await _accounts.DeleteAsync(id);
-        await _outbox.AddAsync(OutboxEvent.Create(AccountEventTypes.AccountDeleted,
-            new { account.Id, account.Cpf }));
+        await _accountRepository.DeleteAsync(id);
+        await _outboxRepository.AddAsync(new OutboxEvent
+        {
+            EventType = AccountEventTypes.AccountDeleted,
+            Payload = JsonSerializer.Serialize(new { account.Id, account.Cpf })
+        });
         await _unitOfWork.CommitAsync();
+    }
+
+    public async Task<AccountData?> GetByCpfAsync(string cpf)
+    {
+        var account = await _accountRepository.GetByCpfAsync($"{cpf}");
+        return account is null ? null : AccountData.FromEntity(account);
     }
 }

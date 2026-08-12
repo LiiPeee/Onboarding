@@ -11,5 +11,14 @@ services:
     volumes:
       - onboarding-pgdata:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    container_name: onboarding-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - onboarding-redisdata:/data
+
 volumes:
   onboarding-pgdata:
+  onboarding-redisdata:

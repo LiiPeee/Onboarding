@@ -20,7 +20,7 @@ public class OutboxProcessorTests
         var uow = new Mock<IUnitOfWork>();
         var pending = new List<OutboxEvent>
         {
-            OutboxEvent.Create(AccountEventTypes.AccountCreated, new { Id = 1 })
+            new OutboxEvent { EventType = AccountEventTypes.AccountCreated, Payload = "{\"Id\":1}" }
         };
         outbox.Setup(o => o.GetPendingAsync(It.IsAny<int>())).ReturnsAsync(pending);
         outbox.Setup(o => o.MarkProcessedAsync(It.IsAny<IEnumerable<OutboxEvent>>()))

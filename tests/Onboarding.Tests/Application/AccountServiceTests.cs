@@ -47,7 +47,7 @@ public class AccountServiceTests
     public async Task CreateAsync_DuplicateCpf_ThrowsInvalidOperationException()
     {
         _accounts.Setup(r => r.GetByCpfAsync("52998224725"))
-            .ReturnsAsync(new Account("Outro", "52998224725"));
+            .ReturnsAsync(new Account { Name = "Outro", Cpf = "52998224725" });
         var sut = CreateSut();
 
         var act = () => sut.CreateAsync(new CreateAccountData { Name = "Felipe", Cpf = "52998224725" });
@@ -68,7 +68,7 @@ public class AccountServiceTests
     [Fact]
     public async Task UpdateAsync_ExistingAccount_UpdatesAndPublishesEvent()
     {
-        var account = new Account("Felipe", "52998224725");
+        var account = new Account { Name = "Felipe", Cpf = "52998224725" };
         _accounts.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(account);
         _accounts.Setup(r => r.UpdateAsync(account)).ReturnsAsync(true);
         var sut = CreateSut();
@@ -94,7 +94,7 @@ public class AccountServiceTests
     [Fact]
     public async Task DeleteAsync_ExistingAccount_DeletesAndPublishesEvent()
     {
-        var account = new Account("Felipe", "52998224725");
+        var account = new Account { Name = "Felipe", Cpf = "52998224725" };
         _accounts.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(account);
         _accounts.Setup(r => r.DeleteAsync(1)).ReturnsAsync(true);
         var sut = CreateSut();
