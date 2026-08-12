@@ -13,11 +13,13 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="FluentAssertions" Version="6.12.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Onboarding.Application\Onboarding.Services.csproj" />
     <ProjectReference Include="..\..\src\Onboarding.Domain\Onboarding.Models.csproj" />
+    <ProjectReference Include="..\..\src\Onboarding.Infrastructure\Onboarding.Repositories.csproj" />
   </ItemGroup>
 
 </Project>
