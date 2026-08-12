@@ -34,6 +34,13 @@ public class AccountsController(IAccountService accountService) : ControllerBase
         return account is null ? NotFound() : Ok(account.ToResponse());
     }
 
+    [HttpGet("cpf/{cpf}")]
+    public async Task<ActionResult<AccountResponse>> GetByCpfAsync(string cpf)
+    {
+        var account = await _accountService.GetByCpfAsync(cpf);
+        return account is null ? NotFound() : Ok(account.ToResponse());
+    }
+
     [HttpPut("{id:long}")]
     public async Task<ActionResult<AccountResponse>> UpdateAsync(long id, [FromBody] UpdateAccountRequest request)
     {
