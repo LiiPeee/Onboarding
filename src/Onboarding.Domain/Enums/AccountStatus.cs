@@ -1,10 +1,7 @@
-﻿
+namespace Onboarding.Domain.Enums;
 
-namespace Onboarding.Models.Enums
+public enum AccountStatus
 {
-    public enum AccountStatus
-    {
-        Ativa,
-        Inativa,
-    }
+    Ativa,
+    Inativa,
 }

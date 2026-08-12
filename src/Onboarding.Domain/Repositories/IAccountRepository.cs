@@ -1,8 +1,9 @@
-﻿using Onboarding.Domain.Entities;
+using Onboarding.Domain.Entities;
 
-namespace Onboarding.Models.Repositories
+namespace Onboarding.Domain.Repositories;
+
+public interface IAccountRepository : IRepositoryBase<Account>
 {
-    public interface IAccountRepository : IBaseRepository<Account>
-    {
-    }
+    Task<Account?> GetByCpfAsync(string cpf);
+    Task<IReadOnlyList<Account>> GetAllAsync();
 }
