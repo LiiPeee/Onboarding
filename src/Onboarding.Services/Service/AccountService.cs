@@ -105,7 +105,8 @@ public class AccountService(
 
     public async Task<AccountData?> GetByCpfAsync(string cpf)
     {
-        var account = await _accountRepository.GetByCpfAsync($"{cpf}");
+        var cpfNormalizado = CpfValidator.NormalizeCpf(cpf);
+        var account = await _accountRepository.GetByCpfAsync(cpfNormalizado);
         return account is null ? null : AccountData.FromEntity(account);
     }
 }
