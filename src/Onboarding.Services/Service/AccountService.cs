@@ -4,6 +4,7 @@ using Onboarding.Domain.Enums;
 using Onboarding.Domain.Events;
 using Onboarding.Domain.Repositories;
 using Onboarding.Domain.UnitOfWork;
+using Onboarding.Models.Entities;
 using Onboarding.Services.Interfaces;
 using Onboarding.Services.Models.Request;
 using Onboarding.Services.Models.Response;
@@ -52,10 +53,15 @@ public class AccountService(
         return account is null ? null : AccountData.FromEntity(account);
     }
 
-    public async Task<IReadOnlyList<AccountData>> GetAllAsync()
+    public async Task<PaginatedResult<AccountData>> GetAllAsync(int page, int pageSize)
     {
-        var accounts = await _accountRepository.GetAllAsync();
-        return accounts.Select(AccountData.FromEntity).ToList();
+        var accounts = await _accountRepository.GetAllAsync(page,pageSize);
+        return new PaginatedResult<AccountData> {
+            Items = accounts.Items.Select(ac => AccountData.FromEntity(ac)).ToList(),
+            Page = accounts.Page,
+            PageSize = accounts.PageSize,
+            TotalItems = accounts.TotalItems,
+            TotalPages = accounts.TotalPages };
     }
 
     public async Task<AccountData> UpdateAsync(long id, UpdateAccountData data)

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Onboarding.Data;
 using Onboarding.Domain.Repositories;
 using Onboarding.Domain.Entities;
+using Onboarding.Models.Entities;
 
 namespace Onboarding.Repositories.Persistence;
 
@@ -21,8 +22,35 @@ public class AccountRepository(AppDbContext context) : IAccountRepository
     public Task<Account?> GetByCpfAsync(string cpf)
         => _context.Accounts.AsNoTracking().FirstOrDefaultAsync(a => a.Cpf == cpf);
 
-    public async Task<IReadOnlyList<Account>> GetAllAsync()
-        => await _context.Accounts.AsNoTracking().OrderBy(a => a.Id).ToListAsync();
+    public async Task<PaginatedResult<Account>> GetAllAsync(int page,
+    int pageSize)
+    {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var query = _context.Accounts
+            .AsNoTracking()
+            .OrderBy(x => x.Id);
+
+        var totalItems = await query.CountAsync();
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var totalPages = (int)Math.Ceiling(
+            totalItems / (double)pageSize);
+
+        return new PaginatedResult<Account>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = totalItems,
+            TotalPages = totalPages
+        };
+    }
 
     public Task<bool> UpdateAsync(Account entity)
     {

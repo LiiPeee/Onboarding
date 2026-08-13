@@ -132,3 +132,66 @@ dotnet test tests/Onboarding.Tests
 
 - **EF Core + UnitOfWork**: repositórios sobre `AppDbContext` com `IUnitOfWork` para commit transacional.
 - **Validação de CPF**: `CpfValidator` aceita CPF com ou sem máscara e valida os dígitos verificadores.
+
+## Paginação
+
+O endpoint `GET /api/accounts` é paginado para evitar carregar todas as contas de uma vez na memória — essencial quando a base cresce (milhares/milhões de registros). Sem paginação, cada chamada faria um `SELECT` completo, consumindo memória, CPU e rede desnecessariamente e degradando a API.
+
+**Parâmetros de query:**
+
+| Parâmetro | Padrão | Limites | Descrição                          |
+| --------- | ------ | ------- | ---------------------------------- |
+| `page`    | `1`    | `>= 1`  | Número da página (1-based)         |
+| `pageSize`| `10`   | `1..100`| Quantidade de itens por página     |
+
+**Como funciona** (`AccountRepository.GetAllAsync`):
+
+- `page` e `pageSize` são normalizados (`page = Math.Max(page, 1)` e `pageSize = Math.Clamp(pageSize, 1, 100)`), evitando valores inválidos/negativos.
+- Conta o total de registros (`CountAsync`) para calcular `TotalItems` e `TotalPages`.
+- Aplica `Skip((page - 1) * pageSize).Take(pageSize)` para buscar apenas a fatia da página.
+- Retorna um `PaginatedResult<T>` com `Items`, `Page`, `PageSize`, `TotalItems` e `TotalPages`.
+
+**Exemplo de resposta:**
+
+```json
+{
+  "items": [ { "id": 1, "name": "Felipe", "cpf": "***.***.247-25", "status": "Ativa" } ],
+  "page": 1,
+  "pageSize": 10,
+  "totalItems": 2,
+  "totalPages": 1
+}
+```
+
+**Cache por página:** o `CachedAccountRepository` cacheia cada página com uma chave própria (`accounts:all:{version}:{page}:{pageSize}`). Isso evita dois problemas: (1) todas as páginas compartilharem a mesma chave e retornarem dados errados, e (2) a invalidação em create/update/delete. Para invalidar todas as páginas de uma vez, usa-se um **contador de versão** (`accounts:version`): cada mutação incrementa a versão, o que torna obsoletas todas as chaves de página anteriores.
+
+## Máscara e normalizador de CPF
+
+O CPF é tratado em três etapas no `CpfValidator`:
+
+1. **Normalização** (`NormalizeCpf`): remove tudo que não for dígito (`char.IsDigit`), aceitando CPF com ou sem máscara (`529.982.247-25` → `52998224725`). Isso garante que o dado seja armazenado e comparado de forma consistente no banco, independente de como o usuário digitou.
+2. **Validação** (`IsValid`): verifica se tem exatamente 11 dígitos, rejeita sequências repetidas (ex.: `111.111.111-11`) e confere os dois dígitos verificadores pelo algoritmo oficial do CPF.
+3. **Máscara** (`Mask`): na resposta da API, o CPF é **parcialmente mascarado** (`***.***.247-25`), expondo apenas os últimos 5 dígitos.
+
+**Por que isso é importante:**
+
+- **Privacidade / LGPD:** o CPF é um dado pessoal sensível. Retorná-lo por completo na API expõe informações desnecessárias a quem consome o endpoint. Mascarar a maior parte do número reduz a superfície de exposição, mantendo apenas o suficiente para identificação parcial.
+- **Consistência:** normalizar antes de gravar evita duplicidades (o mesmo CPF digitado com e sem máscara viraria dois registros diferentes).
+- **Robustez:** a validação dos dígitos verificadores impede CPFs inválidos ou fabricados de entrarem no sistema.
+
+## Autenticação (decisão de design)
+
+**Por que não há autenticação agora:** este é um **projeto de teste técnico**, cujo foco é demonstrar arquitetura (DDD, SOLID, Clean Code), CRUD, validação de CPF, cache e o padrão Outbox. Adicionar autenticação completa (login, refresh token, revogação, etc.) aumentaria o escopo sem agregar valor à avaliação do que está sendo testado.
+
+**O que seria ideal em produção:** em um sistema real, todos os endpoints deveriam exigir autenticação via **JWT (JSON Web Token)** — um token assinado que o cliente envia no header `Authorization: Bearer <token>`, permitindo que a API valide a identidade do usuário sem estado de sessão no servidor. Isso protege os dados pessoais (como o CPF) e garante que apenas usuários autenticados e autorizados acessem os recursos.
+
+**Demonstração no código:** para evidenciar que a autenticação foi considerada, o atributo `[Authorize]` está **comentado** no controller:
+
+```csharp
+[ApiController]
+[Route("api/accounts")]
+//[Authorize]
+public class AccountsController(IAccountService accountService) : ControllerBase
+```
+
+Basta descomentar `[Authorize]` e configurar o JWT (via `AddAuthentication().AddJwtBearer(...)` no `Program.cs`) para que todos os endpoints passem a exigir um token válido. O `using Microsoft.AspNetCore.Authorization;` já está presente no arquivo.

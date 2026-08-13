@@ -1,4 +1,5 @@
 using Onboarding.Domain.Entities;
+using Onboarding.Services.Validators;
 
 namespace Onboarding.Services.Models.Response;
 
@@ -15,7 +16,7 @@ public class AccountData
     {
         Id = account.Id,
         Name = account.Name,
-        Cpf = account.Cpf,
+        Cpf = CpfValidator.Mask(account.Cpf),
         Status = account.Status.ToString(),
         CreatedAt = account.CreatedAt,
         UpdatedAt = account.UpdatedAt

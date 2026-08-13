@@ -22,4 +22,21 @@ public static class CpfValidator
         var second = (sum * 10 % 11) % 10;
         return numbers[10] == second;
     }
+    public static string NormalizeCpf(string cpf)
+    {
+        if (string.IsNullOrWhiteSpace(cpf))
+            return string.Empty;
+
+        return new string(cpf.Where(char.IsDigit).ToArray());
+    }
+    public static string Mask(string cpf)
+    {
+        var normalizedCpf = NormalizeCpf(cpf);
+
+        if (normalizedCpf.Length != 11)
+            return cpf;
+
+        return $"***.***.{normalizedCpf.Substring(6, 3)}-{normalizedCpf.Substring(9, 2)}";
+    }
+
 }

@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Caching.Distributed;
 using Onboarding.Domain.Repositories;
 using Onboarding.Domain.Entities;
+using Onboarding.Models.Entities;
 
 namespace Onboarding.Repositories.Cache;
 
@@ -14,7 +15,8 @@ public class CachedAccountRepository(IAccountRepository inner, IDistributedCache
 
     private static string Key(long id) => $"account:{id}";
     private static string CpfKey(string cpf) => $"account:cpf:{cpf}";
-    private static string AllKey() => "accounts:all";
+    private static string AllKey(int page, int pageSize, long version) => $"accounts:all:{version}:{page}:{pageSize}";
+    private static string VersionKey() => "accounts:version";
 
     private static DistributedCacheEntryOptions EndOfDay()
     {
@@ -23,6 +25,19 @@ public class CachedAccountRepository(IAccountRepository inner, IDistributedCache
         {
             AbsoluteExpiration = now.Date.AddDays(1)
         };
+    }
+
+    private async Task<long> GetVersionAsync()
+    {
+        var value = await _cache.GetStringAsync(VersionKey());
+        return long.TryParse(value, out var version) ? version : 0;
+    }
+
+    private async Task<long> BumpVersionAsync()
+    {
+        var version = await GetVersionAsync() + 1;
+        await _cache.SetStringAsync(VersionKey(), version.ToString());
+        return version;
     }
 
     public async Task<Account?> GetByIdAsync(long id)
@@ -51,14 +66,25 @@ public class CachedAccountRepository(IAccountRepository inner, IDistributedCache
         return account;
     }
 
-    public async Task<IReadOnlyList<Account>> GetAllAsync()
+    public async Task<PaginatedResult<Account>> GetAllAsync(int page, int pageSize)
     {
-        var cached = await _cache.GetStringAsync(AllKey());
+        var version = await GetVersionAsync();
+        var key = AllKey(page, pageSize, version);
+        var cached = await _cache.GetStringAsync(key);
         if (cached is not null)
-            return JsonSerializer.Deserialize<List<Account>>(cached, JsonOptions)!;
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<PaginatedResult<Account>>(cached, JsonOptions)!;
+            }
+            catch (JsonException)
+            {
+                await _cache.RemoveAsync(key);
+            }
+        }
 
-        var accounts = await _inner.GetAllAsync();
-        await _cache.SetStringAsync(AllKey(), JsonSerializer.Serialize(accounts, JsonOptions), EndOfDay());
+        var accounts = await _inner.GetAllAsync(page, pageSize);
+        await _cache.SetStringAsync(key, JsonSerializer.Serialize(accounts, JsonOptions), EndOfDay());
 
         return accounts;
     }
@@ -66,7 +92,7 @@ public class CachedAccountRepository(IAccountRepository inner, IDistributedCache
     public async Task<Account> AddAsync(Account entity)
     {
         var result = await _inner.AddAsync(entity);
-        await _cache.RemoveAsync(AllKey());
+        await BumpVersionAsync();
         await _cache.RemoveAsync(CpfKey(entity.Cpf));
         return result;
     }
@@ -76,7 +102,7 @@ public class CachedAccountRepository(IAccountRepository inner, IDistributedCache
         var result = await _inner.UpdateAsync(entity);
         await _cache.RemoveAsync(Key(entity.Id));
         await _cache.RemoveAsync(CpfKey(entity.Cpf));
-        await _cache.RemoveAsync(AllKey());
+        await BumpVersionAsync();
         return result;
     }
 
@@ -91,7 +117,7 @@ public class CachedAccountRepository(IAccountRepository inner, IDistributedCache
                 await _cache.RemoveAsync(CpfKey(account.Cpf));
         }
         await _cache.RemoveAsync(Key(id));
-        await _cache.RemoveAsync(AllKey());
+        await BumpVersionAsync();
         return result;
     }
 }
