@@ -18,9 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Onboarding.Services\Onboarding.Services.csproj" />
-    <ProjectReference Include="..\..\src\Onboarding.Domain\Onboarding.Models.csproj" />
-    <ProjectReference Include="..\..\src\Onboarding.Infrastructure\Onboarding.Infrastructure.csproj" />
+    <ProjectReference Include="..\Onboarding.Services\Onboarding.Services.csproj" />
+    <ProjectReference Include="..\Onboarding.Domain\Onboarding.Models.csproj" />
+    <ProjectReference Include="..\Onboarding.Infrastructure\Onboarding.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

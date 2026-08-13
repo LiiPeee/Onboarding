@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace Onboarding.WebApi.Middlaware;
+namespace Onboarding.WebApi.Middleware;
 
 public class GlobalExceptionMiddleware
 {

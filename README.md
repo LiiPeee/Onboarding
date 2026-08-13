@@ -107,7 +107,7 @@ curl -X DELETE http://localhost:5000/api/accounts/1
 ## Testes
 
 ```bash
-dotnet test tests/Onboarding.Tests
+dotnet test src/Onboarding.Tests
 ```
 
 ## Decisões de design

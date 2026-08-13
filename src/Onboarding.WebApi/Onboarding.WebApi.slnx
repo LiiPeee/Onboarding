@@ -3,5 +3,6 @@
   <Project Path="../Onboarding.Data/Onboarding.Data.csproj" Id="63778ce3-a832-4dc5-9e6b-c873a5f7fd89" />
   <Project Path="../Onboarding.Domain/Onboarding.Models.csproj" Id="17a3121f-280b-4a24-af3a-0ecf41958391" />
   <Project Path="../Onboarding.Infrastructure/Onboarding.Infrastructure.csproj" Id="8d55279d-dd3a-4a03-a62d-cb4007b10832" />
+  <Project Path="../Onboarding.Tests/Onboarding.Tests.csproj" />
   <Project Path="Onboarding.WebApi.csproj" />
 </Solution>

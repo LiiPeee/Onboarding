@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Onboarding.Data;
 using Onboarding.Repositories;
 using Onboarding.Services;
-using Onboarding.WebApi.Middlaware;
+using Onboarding.WebApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
