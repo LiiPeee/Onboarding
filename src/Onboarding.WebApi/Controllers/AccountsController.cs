@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Onboarding.Services.Interfaces;
 using Onboarding.WebApi.Mappers;
@@ -8,6 +9,7 @@ namespace Onboarding.WebApi.Controllers;
 
 [ApiController]
 [Route("api/accounts")]
+//[Authorize]
 public class AccountsController(IAccountService accountService) : ControllerBase
 {
     private readonly IAccountService _accountService = accountService;
@@ -21,10 +23,11 @@ public class AccountsController(IAccountService accountService) : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<AccountResponse>>> GetAllAsync()
+    public async Task<ActionResult> GetAllAsync([FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10)
     {
-        var accounts = await _accountService.GetAllAsync();
-        return Ok(accounts.Select(a => a.ToResponse()).ToList());
+        var accounts = await _accountService.GetAllAsync(page,pageSize);
+        return Ok(accounts);
     }
 
     [HttpGet("{id:long}", Name = "GetAccountById")]
