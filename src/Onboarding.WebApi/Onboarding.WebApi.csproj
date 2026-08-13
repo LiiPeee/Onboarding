@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Onboarding.Application\Onboarding.Services.csproj" />
+    <ProjectReference Include="..\Onboarding.Services\Onboarding.Services.csproj" />
     <ProjectReference Include="..\Onboarding.Data\Onboarding.Data.csproj" />
     <ProjectReference Include="..\Onboarding.Infrastructure\Onboarding.Infrastructure.csproj" />
   </ItemGroup>

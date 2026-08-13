@@ -18,7 +18,7 @@ API de onboarding de contas bancárias construída em **.NET 8** com **PostgreSQ
 └──────────────────────────────┬──────────────────────────────┘
                                │
 ┌──────────────────────────────▼──────────────────────────────┐
-│  Onboarding.Application  (AccountService, CpfValidator, DTOs)│
+│  Onboarding.Services  (AccountService, CpfValidator, DTOs)   │
 └──────────────────────────────┬──────────────────────────────┘
                                │
 ┌──────────────────────────────▼──────────────────────────────┐
@@ -72,13 +72,14 @@ $env:REDIS_PASSWORD=""   # opcional, se o Redis exigir senha
 
 ## Endpoints
 
-| Método | Rota                 | Descrição                        |
-| ------ | -------------------- | -------------------------------- |
-| POST   | `/api/accounts`      | Cria uma conta (201)             |
-| GET    | `/api/accounts`      | Lista todas as contas (200)      |
-| GET    | `/api/accounts/{id}` | Busca uma conta por id (200/404) |
-| PUT    | `/api/accounts/{id}` | Atualiza nome/status (200/404)   |
-| DELETE | `/api/accounts/{id}` | Remove uma conta (204/404)       |
+| Método | Rota                      | Descrição                        |
+| ------ | ------------------------- | -------------------------------- |
+| POST   | `/api/accounts`           | Cria uma conta (201)             |
+| GET    | `/api/accounts`           | Lista todas as contas (200)      |
+| GET    | `/api/accounts/cpf/{cpf}` | Busca uma conta por cpf (200)    |
+| GET    | `/api/accounts/{id}`      | Busca uma conta por id (200/404) |
+| PUT    | `/api/accounts/{id}`      | Atualiza nome/status (200/404)   |
+| DELETE | `/api/accounts/{id}`      | Remove uma conta (204/404)       |
 
 Exemplos:
 

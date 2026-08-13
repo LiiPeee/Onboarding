@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Onboarding.Data;
 using Onboarding.Domain.Repositories;
 using Onboarding.Domain.UnitOfWork;
-using Onboarding.Infrastructure.Cache;
+using Onboarding.Repositories.Cache;
 using Onboarding.Repositories.Outbox;
 using Onboarding.Repositories.Persistence;
 

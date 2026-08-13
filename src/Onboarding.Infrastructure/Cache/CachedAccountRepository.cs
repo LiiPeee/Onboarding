@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Distributed;
-using Onboarding.Domain.Entities;
 using Onboarding.Domain.Repositories;
+using Onboarding.Domain.Entities;
 
-namespace Onboarding.Infrastructure.Cache;
+namespace Onboarding.Repositories.Cache;
 
 public class CachedAccountRepository(IAccountRepository inner, IDistributedCache cache) : IAccountRepository
 {

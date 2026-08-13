@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Onboarding.Data;
-using Onboarding.Domain.Entities;
 using Onboarding.Domain.Repositories;
+using Onboarding.Domain.Entities;
 
 namespace Onboarding.Repositories.Persistence;
 
