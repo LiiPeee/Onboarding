@@ -29,7 +29,7 @@ public class AccountService(
         if (!CpfValidator.IsValid(data.Cpf))
             throw new ArgumentException("Invalid CPF.", nameof(data));
 
-        var cpf = new string(data.Cpf.Where(char.IsDigit).ToArray());
+        var cpf = CpfValidator.NormalizeCpf(data.Cpf);
 
         if (await _accountRepository.GetByCpfAsync(cpf) is not null)
             throw new InvalidOperationException("An account with this CPF already exists.");

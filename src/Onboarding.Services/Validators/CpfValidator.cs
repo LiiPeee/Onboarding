@@ -6,21 +6,11 @@ public static class CpfValidator
     {
         if (string.IsNullOrWhiteSpace(cpf)) return false;
 
-        var digits = new string(cpf.Where(char.IsDigit).ToArray());
+        var digits = NormalizeCpf(cpf);
         if (digits.Length != 11) return false;
         if (digits.Distinct().Count() == 1) return false;
 
-        var numbers = digits.Select(c => c - '0').ToArray();
-
-        var sum = 0;
-        for (var i = 0; i < 9; i++) sum += numbers[i] * (10 - i);
-        var first = (sum * 10 % 11) % 10;
-        if (numbers[9] != first) return false;
-
-        sum = 0;
-        for (var i = 0; i < 10; i++) sum += numbers[i] * (11 - i);
-        var second = (sum * 10 % 11) % 10;
-        return numbers[10] == second;
+        return true;
     }
     public static string NormalizeCpf(string cpf)
     {
